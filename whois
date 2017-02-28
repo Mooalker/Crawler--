@@ -1,0 +1,100 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
+import time
+import cv2
+import numpy as np
+import subprocess
+from matplotlib import pyplot as plt
+from xlrd import open_workbook
+import re
+from bs4 import BeautifulSoup as BS
+import datetime
+import csv
+from collections import namedtuple
+
+def main():
+    t0 = datetime.datetime.now()
+    driver = webdriver.Chrome('E:/Code/chromedriver_win32/chromedriver')
+    # driver = webdriver.PhantomJS(executable_path="phantomjs.exe")
+    with open('ICP备案data/备案数据.csv') as f:
+        f_csv = csv.reader(f)
+        headings = next(f_csv)
+        Row = namedtuple('Row', headings)
+        rows = []
+        for r in f_csv:
+            row = Row(*r)
+            if row.域名 != '':
+                url = 'https://whois.aliyun.com/whois/domain/' + row.域名
+                print(url)
+                newdata = driversearch(driver, url)
+                if newdata == False:
+                    rows.append((row.公司, row.性质, row.备案号, row.网站名称, row.域名,newdata))
+                else:
+                    # rows.append((row.公司, row.性质, row.备案号, row.网站名称, row.域名, row.审核时间, newdata[0], newdata[1]))
+                    rows.append((row.公司, row.性质, row.备案号, row.网站名称, row.域名, newdata[0], newdata[1]))
+            else:
+                break
+
+    headers = ['公司', '性质', '备案号', '网站名称', '域名',  '手机号', '邮箱']
+    with open('ICP备案data/whois数据.csv', 'w') as f2:
+        f2_csv = csv.writer(f2)
+        f2_csv.writerow(headers)
+        f2_csv.writerows(rows)
+    print(datetime.datetime.now()-t0)
+
+def driversearch(driver,url):
+    try:
+        driver.get(url)
+        # driver.refresh()
+        driver.get(url)
+        time.sleep(5)
+        soup = BS(driver.page_source, 'lxml')
+        tel = re.findall(r'\+86.*', str(soup))
+        email = soup.select('#info_registrantEmail')[0].get_text().strip().lstrip().rstrip(',')
+        email2 = re.findall(r'.*@.*', str(soup.select('#info_whois_full')))
+        email3 = []
+        for i in email2:
+            a = i.split(':')
+            email3.append(a[1].strip().lstrip().rstrip(','))  # 去掉空格个特殊字符。
+        tellist = []
+        emaillist = []
+        emaillist.append(email)
+        for i in tel:
+            if i not in tellist:
+                tellist.append(i)
+        for i in email3:
+            if i not in emaillist:
+                emaillist.append(i)
+        # print(url)
+        # print(tellist)
+        # print(emaillist)
+        return tellist, emaillist
+    except Exception as e:
+        print(e)
+        return False
+    # except:
+    #     print(url)
+    #     print('sb写法,该打印出报错信息的。')
+    #     return driversearch(driver,url)
+
+
+def readsheet(s, row_count=-1, col_count=-1):
+    nrows = s.nrows  # Sheet 有多少行
+    ncols = s.ncols  # Sheet 有多少列
+    row_count = (row_count if row_count > 0 else nrows)
+    col_count = (col_count if col_count > 0 else ncols)
+    row_index = 0
+    while row_index < row_count:
+        yield [s.cell(row_index, col).value for col in range(col_count)]
+        row_index += 1
+
+if __name__ == "__main__":
+    main()
+
+
+
+
