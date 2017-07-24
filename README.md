@@ -1,2 +1,2 @@
-# Crawler--gsba
-该爬虫用于采集工商备案信息网数据
+# pachong-exercise
+python爬虫的简单实用，用于采集网站数据
