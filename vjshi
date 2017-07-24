@@ -1,0 +1,96 @@
+#此脚本用于抓取vjshi网站的相关数据，用于竞品分析。
+#网址：www.vjshi.com  
+#time：2017/7/24
+
+
+import urllib.request
+from urllib import request
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+import lxml
+import re
+import time
+
+def getid(cid):
+    headers = {"Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.6",
+               "User-Agent": 'Mozilla/5.0 '
+               }
+    data_id = []
+    for p in range(21, 100 + 1):
+        # url = 'http://www.vjshi.com/Program?cid=' + str(cid) + '&p=' + str(p)
+        url = 'http://www.vjshi.com/Program?order=down&p=' + str(p)
+        print(url)
+        req = request.Request(url, headers=headers)
+        res = urlopen(req).read().decode('utf-8')
+        data0 = BeautifulSoup(res, 'lxml').find_all('div', 'material-waterfall-item')
+        for i in data0:
+            data1 = BeautifulSoup(str(i), 'lxml').div['data-v']
+            id = re.findall(r'id:(.+?),', data1)[0]
+            if (len(data_id) >= 1):
+                if (id != data_id[len(data_id) - 1]):
+                    data_id.append(id)
+                else:
+                    break
+            else:
+                data_id.append(id)
+
+    return data_id
+
+
+def getdetail(cid,data_id):
+    num = 1
+    for i in data_id:
+        id_url = 'http://www.vjshi.com/watch/' + str(i) + '.html'
+        headers = {"Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.6",
+                   "User-Agent": 'Mozilla/5.0 '
+                   }
+        try:
+            req = request.Request(id_url, headers=headers)
+            res = urlopen(req).read().decode('UTF-8')
+            soup = BeautifulSoup(res, 'lxml')
+            title = soup.h3.contents[0]
+            sale = BeautifulSoup(str(soup.find_all('div', 'video-price')), 'lxml').get_text('|', strip=True)
+
+            # price = re.findall(r'售价:(.+?)上传', sale)
+            # down = re.findall(r'|浏览:(.+?),', sale)[0]
+            inform = BeautifulSoup(str(soup.find_all('div', 'video-property')), 'lxml').get_text('|', strip=True)
+            # fenbl = re.findall(r'分辨率:(.+?)|', inform)[0]
+            # date = re.findall(r'上传日期:(.+?)|', inform)[0]
+            # big = re.findall(r'文件大小:(.+?)|', inform)[0]
+            # software = re.findall(r'版本:(.+?)|', inform)[0]
+            # person = re.findall(r'可修改范围:(.+?)|', inform)[0]
+            # saled = re.findall(r'素材已赚:(.+?)|', inform)[0]
+            cid2 = BeautifulSoup(str(soup.find_all('div', 'cur-pos')), 'lxml').get_text('|', strip=True)
+            id_data = [num, cid, i, title, sale, inform, cid2]
+            num = num + 1
+            print(id_data)
+            f = open('D:/Documents/Python/all最多下载cid.txt', 'r+')
+            f.read()
+            f.write(str(id_data) + '\n')
+            f.close()
+        except:
+            continue
+
+
+def main():
+    cid = [#151, 149, 153, 193, 155, 194, 196, 192,  # AE
+           118, 122, 129, 130, 131, 177,  # 舞台背景  127,
+           112, 113, 114, 115, 116, 128, 181, 183, 169,  # 酒吧
+           164, 165,
+           148, 150, 154, 152, 156, 157, 158, 159, 176, 179, 175, 195, 161,
+           180, 168, 160, 162, 186, 163, 170,
+           201, 202, 203, 204, 205, 206, 207, 210,
+           211, 212, 213, 214, 215, 216, 217, 218,
+           219, 220, 221, 222, 223, 224, 225, 226,
+           227, 228, 229, 173, 172, 209]
+    tip = time.time()
+    for k in cid:
+        print('开始采集'+str(k))
+        data_id = getid(k)
+        print(data_id)
+        getdetail(k,data_id)
+    print("用时", time.time() - tip)
+
+
+if __name__ == '__main__':
+    main()
