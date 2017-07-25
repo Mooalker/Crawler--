@@ -29,3 +29,24 @@ D:\CodER\opencv\build\x64\vc14\bin
 2.在第三方库中找到对应版本，用pip安装
 安装tesseract-ocr：下载解压到制定文件夹即可
 
+
+
+【学习资源推荐】
+python入门：
+      #在线学习网站：https://www.codecademy.com/zh/learn/python
+      #书单：    
+正则表达式入门：https://www.oschina.net/question/12_9507
+BeautifulSoup：https://www.crummy.com/software/BeautifulSoup/bs4/doc/index.zh.html
+python爬虫入门：https://zhuanlan.zhihu.com/p/21479334
+
+
+
+
+
+
+
+
+
+
+
+
