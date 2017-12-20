@@ -1,0 +1,117 @@
+
+# -*- coding: utf-8 -*-
+import urllib.request
+from bs4 import BeautifulSoup
+import re
+import time
+import lxml
+import csv
+from collections import namedtuple
+
+
+header = {
+    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
+}
+
+
+def get_data(pinlei,page_max):
+
+    num = 0
+    error_num = 0
+    error_url = []
+    header = ['pinlei', 'num', 'fenlei_name', 'price', 'doc_type', 'pixel', 'proportion', 'doc_size',
+              'publishing_type', 'publishing_time',
+              'publishing_num', 'view', 'collection', 'download']
+    for page in range(page_max):
+        row = []
+        url = 'http://www.aoao365.com/' + pinlei + "/" + str(page + 1) + '.html'
+        print(url)
+        # url = 'http://www.aoao365.com/ys'
+
+        with urllib.request.urlopen(url) as res:
+            s = res.read().decode('utf-8')
+
+        arr = BeautifulSoup(s, 'lxml').find_all('div', 'zpart')
+
+        for i in arr:
+            # title = i.p
+            try:
+                with urllib.request.urlopen(i.a['href']) as res2:
+                    print(i.a['href'])
+                    s2 = res2.read().decode('utf-8')
+                    soup2 = BeautifulSoup(s2, 'lxml')
+
+                    fenlei_name = BeautifulSoup(str(soup2.find('div', 'webmap')), 'lxml').get_text()
+                    price = re.findall(r'素材标价：<i>(.+?)<', str(soup2))[0]
+
+                    soup3 = BeautifulSoup(str(soup2)).find_all('div', 'prodinfo')
+                    doc_type = re.findall(r'素材格式：(.+?)<', str(soup3))[0]
+                    pixel = re.findall(r'素材像素：(.+?)<', str(soup3))[0]
+                    proportion = re.findall(r'素材比例：(.+?)<', str(soup3))[0]
+                    doc_size = re.findall(r'素材大小：(.+?)<', str(soup3))[0]
+                    publishing_type = re.findall(r'发布类型：(.+?)<', str(soup3))[0]
+                    publishing_time = re.findall(r'发布时间：(.+?)<', str(soup3))[0]
+                    publishing_num = re.findall(r'发表素材：(.+?)<', str(soup2))[0]
+
+                    # # 使用Pattern匹配文本，获得匹配结果，无法匹配时将返回None
+                    # match = pattern.match('hello world!')
+                    #
+                    # re.findall(r"a(.+?)b", str)
+                    #
+                    p = re.compile(r'\d+')
+
+                    view = p.findall(str(BeautifulSoup(str(soup2.find_all('i', 'view'))).get_text()))[0]
+                    collection = p.findall(str(BeautifulSoup(str(soup2.find_all('i', 'collection'))).get_text()))[0]
+                    download = p.findall(str(BeautifulSoup(str(soup2.find_all('i', 'down'))).get_text()))[0]
+                    num = num + 1
+                row.append(
+                    (pinlei, num, fenlei_name, price, doc_type, pixel, proportion, doc_size, publishing_type,
+                     publishing_time,
+                     publishing_num, view, collection, download))
+                print(pinlei, num, fenlei_name, price, doc_type, pixel, proportion, doc_size, publishing_type,
+                      publishing_time,
+                      publishing_num, view, collection, download)
+            except Exception as err:
+                print(err)
+                print(i.a['href'],error_num+1)
+                error_url.append(i.a['href'])
+                time.sleep(3)
+                continue
+
+        with open('test.csv', 'a', newline='') as f2:
+            f2_csv = csv.writer(f2)
+            f2_csv.writerow(header)
+            f2_csv.writerows(row)
+            f2.close()
+
+
+
+
+
+
+def main():
+    data = {'ys':1201, 'hc':1952,'hq':711,'sp':895,'xsp':19}
+
+    for i in data:
+        get_data(i, data.get(i))
+
+
+# row = get_data('ys', 1)
+#
+# header = ['pinlei', 'num', 'fenlei_name', 'price', 'doc_type', 'pixel', 'proportion', 'doc_size',
+#                   'publishing_type', 'publishing_time',
+#                   'publishing_num', 'view', 'collection', 'download']
+# with open('aoshi.csv', 'a',newline = '') as f2:
+#     f2_csv = csv.writer(f2)
+#     f2_csv.writerow(header)
+#     f2_csv.writerows(row)
+#     f2.close()
+
+
+
+if __name__ == '__main__':
+    main()
+
+
+
+
