@@ -1,0 +1,107 @@
+import random
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from time import sleep
+from urllib import request
+
+USER_AGENTS = [
+    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
+    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.0.04506)",
+    "Mozilla/4.0 (compatible; MSIE 7.0; AOL 9.5; AOLBuild 4337.35; Windows NT 5.1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
+    "Mozilla/5.0 (Windows; U; MSIE 9.0; Windows NT 9.0; en-US)",
+    "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 2.0.50727; Media Center PC 6.0)",
+    "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; WOW64; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 1.0.3705; .NET CLR 1.1.4322)",
+    "Mozilla/4.0 (compatible; MSIE 7.0b; Windows NT 5.2; .NET CLR 1.1.4322; .NET CLR 2.0.50727; InfoPath.2; .NET CLR 3.0.04506.30)",
+    "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN) AppleWebKit/523.15 (KHTML, like Gecko, Safari/419.3) Arora/0.3 (Change: 287 c9dfb30)",
+    "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.2pre) Gecko/20070215 K-Ninja/2.1.1",
+    "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9) Gecko/20080705 Firefox/3.0 Kapiko/3.0",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/535.20 (KHTML, like Gecko) Chrome/19.0.1036.7 Safari/535.20",
+    "Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; fr) Presto/2.9.168 Version/11.52",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.11 TaoBrowser/2.0 Safari/536.11",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.71 Safari/537.1 LBBROWSER",
+    "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; LBBROWSER)",
+    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; QQDownload 732; .NET4.0C; .NET4.0E; LBBROWSER)",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.84 Safari/535.11 LBBROWSER",
+    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)",
+    "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; QQBrowser/7.0.3698.400)",
+    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; QQDownload 732; .NET4.0C; .NET4.0E)",
+    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; SV1; QQDownload 732; .NET4.0C; .NET4.0E; 360SE)",
+    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; QQDownload 732; .NET4.0C; .NET4.0E)",
+    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)",
+    "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.89 Safari/537.1",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.89 Safari/537.1",
+    "Mozilla/5.0 (iPad; U; CPU OS 4_2_1 like Mac OS X; zh-cn) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8C148 Safari/6533.18.5",
+    "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:2.0b13pre) Gecko/20110307 Firefox/4.0b13pre",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.87 Safari/537.36",
+    "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko",
+    "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:0.9.4) Gecko/20011128 Netscape6/6.2.1",
+    "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11Mac OS X ",
+    "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en; rv:1.8.1.6) Gecko/20070809 Camino/1.5.1",
+    "Mozilla/5.0 (Platform; Encryption; OS-or-CPU; Language) AppleWebKit/AppleWebKitVersion (KHTML, like Gecko) ",
+    "Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en) AppleWebKit/124 (KHTML, like Gecko) Safari/125.1",
+    "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.13 (KHTML, like Gecko) Chrome/0.2.149.29 Safari/525.13",
+    'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50', 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50', 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0;', 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)', 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)', ' Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)', ' Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv2.0.1) Gecko/20100101 Firefox/4.0.1', 'Mozilla/5.0 (Windows NT 6.1; rv2.0.1) Gecko/20100101 Firefox/4.0.1', 'Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; en) Presto/2.8.131 Version/11.11', 'Opera/9.80 (Windows NT 6.1; U; en) Presto/2.8.131 Version/11.11', ' Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11', ' Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Maxthon 2.0)', ' Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; TencentTraveler 4.0)', ' Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)', ' Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; The World)', ' Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; SE 2.X MetaSr 1.0; SE 2.X MetaSr 1.0; .NET CLR 2.0.50727; SE 2.X MetaSr 1.0)', ' Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)', ' Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Avant Browser)', ' Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)', 'Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5', 'Mozilla/5.0 (iPod; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5', 'Mozilla/5.0 (iPad; U; CPU OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5', ' Mozilla/5.0 (Linux; U; Android 2.3.7; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1', ' MQQBrowser/26 Mozilla/5.0 (Linux; U; Android 2.3.7; zh-cn; MB200 Build/GRJ22; CyanogenMod-7) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1', ' Opera/9.80 (Android 2.3.4; Linux; Opera Mobi/build-1107180945; U; en-GB) Presto/2.8.149 Version/11.10', ' Mozilla/5.0 (Linux; U; Android 3.0; en-us; Xoom Build/HRI39) AppleWebKit/534.13 (KHTML, like Gecko) Version/4.0 Safari/534.13', ' Mozilla/5.0 (BlackBerry; U; BlackBerry 9800; en) AppleWebKit/534.1+ (KHTML, like Gecko) Version/6.0.0.337 Mobile Safari/534.1+', ' Mozilla/5.0 (hp-tablet; Linux; hpwOS/3.0.0; U; en-US) AppleWebKit/534.6 (KHTML, like Gecko) wOSBrowser/233.70 Safari/534.6 TouchPad/1.0', ' Mozilla/5.0 (SymbianOS/9.4; Series60/5.0 NokiaN97-1/20.0.019; Profile/MIDP-2.1 Configuration/CLDC-1.1) AppleWebKit/525 (KHTML, like Gecko) BrowserNG/7.1.18124', ' Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0; HTC; Titan)', ' UCWEB7.0.2.37/28/999', ' NOKIA5700/ UCWEB7.0.2.37/28/999', ' Openwave/ UCWEB7.0.2.37/28/999', ': Mozilla/4.0 (compatible; MSIE 6.0; ) Opera/UCWEB7.0.2.37/28/999']
+
+
+HEADER = {
+    'User-Agent': random.choice(USER_AGENTS),
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Connection': 'keep-alive',
+    'Accept-Encoding': 'gzip, deflate',
+}
+
+proxy = ['120.52.72.58:80', '120.52.72.59:80', '58.242.248.5:80', '122.226.189.232:135', '122.96.59.105:843', '115.159.185.186:8088', '183.61.236.54:3128', '122.195.158.241:8888', '119.118.137.38:8888', '120.52.21.132:8082', '120.52.72.52:80', '221.204.11.8:8080', '171.37.132.126:8123', '124.88.67.32:80', '124.88.67.54:80', '124.88.67.54:81', '124.88.67.20:843', '124.88.67.17:82', '124.88.67.63:80', '175.25.19.18:8118', '113.110.131.204:3128', '125.113.100.205:808', '110.179.39.188:8888', '115.236.75.201:80', '92.222.70.213:3128', '47.89.41.164:80', '101.53.101.172:9999', '101.4.136.34:81', '47.88.195.233:3128', '66.175.83.156:8080', '91.121.42.68:80', '202.171.253.72:80', '202.73.53.22:80', '47.90.9.74:80', '115.236.7.180:3128', '206.127.141.107:443', '200.145.14.20:21320', '192.99.120.19:8080', '149.56.42.95:8080', '178.213.145.24:8080', '109.188.128.197:8081', '89.40.115.244:3128', '218.25.13.23:80', '78.108.199.229:8081', '197.97.146.62:8080', '94.177.179.139:666', '103.240.241.34:80']
+# aa = [{"ip": "120.52.72.58", "port": 80}, {"ip": "120.52.72.59", "port": 80}, {"ip": "58.242.248.5", "port": 80}, {"ip": "122.226.189.232", "port": 135}, {"ip": "122.96.59.105", "port": 843}, {"ip": "115.159.185.186", "port": 8088}, {"ip": "183.61.236.54", "port": 3128}, {"ip": "122.195.158.241", "port": 8888}, {"ip": "119.118.137.38", "port": 8888}, {"ip": "120.52.21.132", "port": 8082}, {"ip": "120.52.72.52", "port": 80}, {"ip": "221.204.11.8", "port": 8080}, {"ip": "171.37.132.126", "port": 8123}, {"ip": "124.88.67.32", "port": 80}, {"ip": "124.88.67.54", "port": 80}, {"ip": "124.88.67.54", "port": 81}, {"ip": "124.88.67.20", "port": 843}, {"ip": "124.88.67.17", "port": 82}, {"ip": "124.88.67.63", "port": 80}, {"ip": "175.25.19.18", "port": 8118}, {"ip": "113.110.131.204", "port": 3128}, {"ip": "125.113.100.205", "port": 808}, {"ip": "110.179.39.188", "port": 8888}, {"ip": "115.236.75.201", "port": 80}, {"ip": "92.222.70.213", "port": 3128}, {"ip": "47.89.41.164", "port": 80}, {"ip": "101.53.101.172", "port": 9999}, {"ip": "101.4.136.34", "port": 81}, {"ip": "47.88.195.233", "port": 3128}, {"ip": "66.175.83.156", "port": 8080}, {"ip": "91.121.42.68", "port": 80}, {"ip": "202.171.253.72", "port": 80}, {"ip": "202.73.53.22", "port": 80}, {"ip": "47.90.9.74", "port": 80}, {"ip": "115.236.7.180", "port": 3128}, {"ip": "206.127.141.107", "port": 443}, {"ip": "200.145.14.20", "port": 21320}, {"ip": "192.99.120.19", "port": 8080}, {"ip": "149.56.42.95", "port": 8080}, {"ip": "178.213.145.24", "port": 8080}, {"ip": "109.188.128.197", "port": 8081}, {"ip": "89.40.115.244", "port": 3128}, {"ip": "218.25.13.23", "port": 80}, {"ip": "78.108.199.229", "port": 8081}, {"ip": "197.97.146.62", "port": 8080}, {"ip": "94.177.179.139", "port": 666}, {"ip": "103.240.241.34", "port": 80}]
+
+def main():
+    url = 'https://www.itjuzi.com/qitu/detail/31613'
+    for i in range(1,4000):
+        # Phantomjs的header设置
+        # dcap = dict(webdriver.DesiredCapabilities.PHANTOMJS)
+        # dcap["phantomjs.page.settings.userAgent"] = (random.choice(USER_AGENTS))
+        # # driver = webdriver.Chrome('D:\codeworld\chromedriver_win32\chromedriver.exe')
+        # driver = webdriver.PhantomJS(desired_capabilities=dcap,
+        #                              executable_path=r'D:\codeworld\phantomjs2.1\bin\phantomjs.exe')
+
+        #Chrome的代理设置
+
+        # url_proxy = 'http://114.55.117.52:7000/?types=0&count=10'
+        # req = request.Request(url_proxy)
+        # proxy = request.urlopen(req).read()
+
+        chrome_options = webdriver.ChromeOptions()
+        user_agent = random.choice(USER_AGENTS)
+        try:
+            # chrome_options.add_argument('--proxy-server=http://%s' % random.choice(proxy))
+            chrome_options.add_argument('User-Agent=%s' % user_agent)
+            driver = webdriver.Chrome('E:/Code/chromedriver_win32/chromedriver', chrome_options=chrome_options, )
+
+            driver.get(url)
+            elem = driver.find_element_by_link_text('我要投票')
+            # elem = driver.find_element_by_xpath("//a[@class='c-gray']")
+            elem.send_keys(Keys.RETURN)
+            sleep(random.randint(0, 5))
+            driver.delete_all_cookies()
+
+            driver.quit()
+            print('投票员第' + str(i) + '号')
+        # except Exception as e:
+        #     print(e)
+        except:
+            print('error:',i)
+        print(user_agent)
+
+
+
+if __name__ == '__main__':
+    main()
+
+
+
+
